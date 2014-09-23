@@ -21,10 +21,6 @@ import org.kde.kdeconnect_tp.R;
 
 public class PingPlugin extends Plugin {
 
-    /*static {
-        PluginFactory.registerPlugin(PingPlugin.class);
-    }*/
-
     @Override
     public String getPluginName() {
         return "plugin_ping";
@@ -43,6 +39,11 @@ public class PingPlugin extends Plugin {
     @Override
     public Drawable getIcon() {
         return context.getResources().getDrawable(R.drawable.icon);
+    }
+
+    @Override
+    public boolean hasSettings() {
+        return false;
     }
 
     @Override
@@ -82,7 +83,7 @@ public class PingPlugin extends Plugin {
                     .setTicker("Ping!")
                     .setSmallIcon(android.R.drawable.ic_dialog_alert)
                     .setAutoCancel(true)
-                    .setDefaults(Notification.DEFAULT_SOUND)
+                    .setDefaults(Notification.DEFAULT_ALL)
                     .build();
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -94,7 +95,7 @@ public class PingPlugin extends Plugin {
     }
 
     @Override
-    public AlertDialog getErrorDialog(Context baseContext) {
+    public AlertDialog getErrorDialog(Activity deviceActivity) {
         return null;
     }
 

@@ -96,7 +96,6 @@ public class BackgroundService extends Service {
                 device.addLink(identityPackage, link);
             } else {
                 Log.i("BackgroundService", "addLink,unknown device: " + deviceId);
-                String name = identityPackage.getString("deviceName");
                 device = new Device(BackgroundService.this, identityPackage, link);
                 devices.put(deviceId, device);
                 device.addPairingCallback(devicePairingCallback);
@@ -273,7 +272,6 @@ public class BackgroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //This will be called for each intent launch, even if the service is already started and it is reused
-        Log.i("BackgroundService","onStartCommand");
         mutex.lock();
         for (InstanceCallback c : callbacks) {
             c.onServiceStart(this);

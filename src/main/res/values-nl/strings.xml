@@ -8,12 +8,16 @@
   <string name="pref_plugin_sftp_desc">Het bladeren in het bestandssysteem op afstand in de telefoon toestaan</string>
   <string name="pref_plugin_clipboard">Klembordsynchronisatie</string>
   <string name="pref_plugin_clipboard_desc">De inhoud van het klembord delen</string>
+  <string name="pref_plugin_mousepad">Afstandsbediening voor muis</string>
+  <string name="pref_plugin_mousepad_desc">Bedien uw muis van afstand</string>
   <string name="pref_plugin_mpris">Afstandsbediening van multimedia</string>
   <string name="pref_plugin_mpris_desc">Bedien de audio/video vanaf uw telefoon</string>
   <string name="pref_plugin_ping">Ping</string>
   <string name="pref_plugin_ping_desc">Pings verzenden en ontvangen</string>
   <string name="pref_plugin_notifications">Synchronisatie van meldingen</string>
   <string name="pref_plugin_notifications_desc">Bekijk uw meldingen van andere apparaten</string>
+  <string name="pref_plugin_sharereceiver">Ontvanger delen</string>
+  <string name="pref_plugin_sharereceiver_desc">Inkomende bestanden opslaan naar de opslag van de telefoon</string>
   <string name="plugin_not_available">Deze functie is niet beschikbaar in uw versie van Android</string>
   <string name="device_list_empty">Geen apparaten</string>
   <string name="ok">OK</string>
@@ -22,12 +26,15 @@
   <string name="no_permissions">U moet toestemming geven voor toegang tot meldingen</string>
   <string name="send_ping">Ping verzenden</string>
   <string name="open_mpris_controls">Afstandsbediening openen</string>
+  <string name="open_mousepad">Afstandsbediening van touchpad openen</string>
+  <string name="mousepad_info">Veeg met een vinger op het scherm om de muiscursor te verplaatsen</string>
   <string name="category_connected_devices">Verbonden apparaten</string>
   <string name="category_not_paired_devices">Geen gepaarde apparaten</string>
   <string name="category_remembered_devices">Onthouden apparaten</string>
   <string name="plugins_failed_to_load">Laden van plug-ins is mislukt (tap voor meer informatie):</string>
   <string name="device_menu_plugins">Plug-ins selecteren</string>
   <string name="device_menu_unpair">Paar uit elkaar halen</string>
+  <string name="device_not_reachable">Gepaard apparaat niet bereikbaar</string>
   <string name="unknown_device">Onbekend apparaat</string>
   <string name="error_not_reachable">Apparaat niet bereikbaar</string>
   <string name="error_already_requested">Paar maken is al gevraagd</string>
@@ -39,8 +46,17 @@
   <string name="error_invalid_key">Ongeldige sleutel ontvangen</string>
   <string name="pair_requested">Paar gevraagd</string>
   <string name="pairing_request_from">Verzoek om een paar te maken van %1s</string>
+  <string name="received_url_title">Ontvangen koppeling van %1s</string>
+  <string name="received_url_text">Tap om \'%1s\' te openen</string>
+  <string name="incoming_file_title">Inkomend bestand van %1s</string>
+  <string name="incoming_file_text">%1s</string>
+  <string name="received_file_title">Bestand ontvangen van %1s</string>
+  <string name="received_file_text">Tap om \'%1s\' te openen</string>
   <string name="tap_to_answer">Tap om te antwoorden</string>
   <string name="reconnect">Opnieuw verbinden</string>
+  <string name="right_click">Verstuur een rechter muisklik</string>
+  <string name="middle_click">Verstuur een middelste muisklik</string>
+  <string name="show_keyboard">Toetsenbord tonen</string>
   <string name="device_not_paired">Apparaat is niet gepaard</string>
   <string name="request_pairing">Verzoek voor maken van paar</string>
   <string name="pairing_accept">Accepteren</string>
@@ -62,4 +78,5 @@
   <string name="device_name">Apparaatnaam</string>
   <string name="device_name_preference_summary">%s</string>
   <string name="invalid_device_name">Ongeldige apparaatnaam</string>
+  <string name="shareplugin_text_saved">Oontvangen tekst, opgeslagen op klembord</string>
 </resources>
