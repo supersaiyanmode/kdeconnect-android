@@ -3,7 +3,6 @@ package org.kde.kdeconnect.Plugins.ClibpoardPlugin;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.widget.Button;
 
@@ -12,10 +11,6 @@ import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect_tp.R;
 
 public class ClipboardPlugin extends Plugin {
-
-    /*static {
-        PluginFactory.registerPlugin(ClipboardPlugin.class);
-    }*/
 
     @Override
     public String getPluginName() {
@@ -34,6 +29,11 @@ public class ClipboardPlugin extends Plugin {
     @Override
     public Drawable getIcon() {
         return context.getResources().getDrawable(R.drawable.icon);
+    }
+
+    @Override
+    public boolean hasSettings() {
+        return false;
     }
 
     @Override
@@ -68,18 +68,7 @@ public class ClipboardPlugin extends Plugin {
     }
 
     @Override
-    public AlertDialog getErrorDialog(Context baseContext) {
-        return new AlertDialog.Builder(baseContext)
-                .setTitle(R.string.pref_plugin_clipboard)
-                .setMessage(R.string.plugin_not_available)
-                .setPositiveButton("Ok",new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .create();
-    }
+    public AlertDialog getErrorDialog(Activity deviceActivity) { return null; }
 
     @Override
     public Button getInterfaceButton(Activity activity) {

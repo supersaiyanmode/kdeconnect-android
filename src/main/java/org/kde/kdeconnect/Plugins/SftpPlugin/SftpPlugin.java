@@ -15,10 +15,6 @@ public class SftpPlugin extends Plugin {
 
     private static final SimpleSftpServer server = new SimpleSftpServer();
 
-    /*static {
-        PluginFactory.registerPlugin(SftpPlugin.class);
-    }*/
-
     @Override
     public String getPluginName() {return "plugin_sftp";}
 
@@ -35,6 +31,11 @@ public class SftpPlugin extends Plugin {
     @Override
     public Drawable getIcon() {
         return context.getResources().getDrawable(R.drawable.icon);
+    }
+
+    @Override
+    public boolean hasSettings() {
+        return false;
     }
 
     @Override
@@ -71,7 +72,7 @@ public class SftpPlugin extends Plugin {
     }
 
     @Override
-    public AlertDialog getErrorDialog(Context baseContext) {return null;}
+    public AlertDialog getErrorDialog(Activity deviceActivity) {return null;}
 
     @Override
     public Button getInterfaceButton(Activity activity) {return null;}

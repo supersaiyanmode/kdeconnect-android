@@ -7,12 +7,14 @@ import android.util.Log;
 
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.Plugins.BatteryPlugin.BatteryPlugin;
+import org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadPlugin;
 import org.kde.kdeconnect.Plugins.SftpPlugin.SftpPlugin;
 import org.kde.kdeconnect.Plugins.ClibpoardPlugin.ClipboardPlugin;
 import org.kde.kdeconnect.Plugins.MprisPlugin.MprisPlugin;
 import org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationsPlugin;
 import org.kde.kdeconnect.Plugins.PingPlugin.PingPlugin;
 import org.kde.kdeconnect.Plugins.TelepathyPlugin.TelepathyPlugin;
+import org.kde.kdeconnect.Plugins.SharePlugin.SharePlugin;
 import org.kde.kdeconnect.Plugins.TelephonyPlugin.TelephonyPlugin;
 
 import java.util.Map;
@@ -23,12 +25,14 @@ public class PluginFactory {
 
     public static class PluginInfo {
 
-        public PluginInfo(String pluginName, String displayName, String description, Drawable icon, boolean enabledByDefault) {
+        public PluginInfo(String pluginName, String displayName, String description, Drawable icon,
+                          boolean enabledByDefault, boolean hasSettings) {
             this.pluginName = pluginName;
             this.displayName = displayName;
             this.description = description;
             this.icon = icon;
             this.enabledByDefault = enabledByDefault;
+            this.hasSettings = hasSettings;
         }
 
         public String getPluginName() {
@@ -47,6 +51,8 @@ public class PluginFactory {
             return icon;
         }
 
+        public boolean hasSettings() { return hasSettings; }
+
         public boolean isEnabledByDefault() {
             return enabledByDefault;
         }
@@ -56,6 +62,7 @@ public class PluginFactory {
         private final String description;
         private final Drawable icon;
         private final boolean enabledByDefault;
+        private final boolean hasSettings;
 
     }
 
@@ -63,7 +70,7 @@ public class PluginFactory {
     private static final Map<String, PluginInfo> availablePluginsInfo = new TreeMap<String, PluginInfo>();
 
     static {
-        //TODO: Avoid this factory having to know every plugin
+        //TODO: Use reflection to find all subclasses of Plugin, instead of adding them manually
         PluginFactory.registerPlugin(TelephonyPlugin.class);
         PluginFactory.registerPlugin(PingPlugin.class);
         PluginFactory.registerPlugin(MprisPlugin.class);
@@ -72,6 +79,8 @@ public class PluginFactory {
         PluginFactory.registerPlugin(SftpPlugin.class);
         PluginFactory.registerPlugin(NotificationsPlugin.class);
         PluginFactory.registerPlugin(TelepathyPlugin.class);
+        PluginFactory.registerPlugin(MousePadPlugin.class);
+        PluginFactory.registerPlugin(SharePlugin.class);
     }
 
     public static PluginInfo getPluginInfo(Context context, String pluginName) {
@@ -80,7 +89,8 @@ public class PluginFactory {
         try {
             Plugin p = ((Plugin)availablePlugins.get(pluginName).newInstance());
             p.setContext(context, null);
-            info = new PluginInfo(pluginName, p.getDisplayName(), p.getDescription(), p.getIcon(), p.isEnabledByDefault());
+            info = new PluginInfo(pluginName, p.getDisplayName(), p.getDescription(), p.getIcon(),
+                    p.isEnabledByDefault(), p.hasSettings());
             availablePluginsInfo.put(pluginName, info); //Cache it
             return info;
         } catch(Exception e) {
@@ -113,10 +123,10 @@ public class PluginFactory {
 
     }
 
-    public static void registerPlugin(Class pluginClass) {
+    public static void registerPlugin(Class<? extends Plugin> pluginClass) {
         try {
             //I hate this but I need to create an instance because abstract static functions can't be declared
-            String pluginName = ((Plugin)pluginClass.newInstance()).getPluginName();
+            String pluginName = (pluginClass.newInstance()).getPluginName();
             availablePlugins.put(pluginName, pluginClass);
         } catch(Exception e) {
             Log.e("PluginFactory","addPlugin exception");

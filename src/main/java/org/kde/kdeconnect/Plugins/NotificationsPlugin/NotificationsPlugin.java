@@ -17,13 +17,10 @@ import android.widget.Button;
 import org.kde.kdeconnect.Helpers.AppsHelper;
 import org.kde.kdeconnect.NetworkPackage;
 import org.kde.kdeconnect.Plugins.Plugin;
+import org.kde.kdeconnect.UserInterface.DeviceActivity;
 import org.kde.kdeconnect_tp.R;
 
 public class NotificationsPlugin extends Plugin implements NotificationReceiver.NotificationListener {
-
-    /*static {
-        PluginFactory.registerPlugin(NotificationsPlugin.class);
-    }*/
 
     @Override
     public String getPluginName() {
@@ -43,6 +40,11 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
     @Override
     public Drawable getIcon() {
         return context.getResources().getDrawable(R.drawable.icon);
+    }
+
+    @Override
+    public boolean hasSettings() {
+        return false;
     }
 
     @Override
@@ -230,16 +232,21 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
 
         if(notification != null) {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Bundle extras = notification.extras;
-                String extraTitle = extras.getString(TITLE_KEY);
-                String extraText = extras.getString(TEXT_KEY);
+                try {
+                    Bundle extras = notification.extras;
+                    String extraTitle = extras.getString(TITLE_KEY);
+                    String extraText = extras.getString(TEXT_KEY);
 
-                if(extraTitle != null && extraText != null) {
-                    ticker = extraTitle + " ‐ " + extraText;
-                } else if(extraTitle != null) {
-                    ticker = extraTitle;
-                } else if(extraText != null) {
-                    ticker = extraText;
+                    if (extraTitle != null && extraText != null) {
+                        ticker = extraTitle + " ‐ " + extraText;
+                    } else if (extraTitle != null) {
+                        ticker = extraTitle;
+                    } else if (extraText != null) {
+                        ticker = extraText;
+                    }
+                } catch(Exception e) {
+                    Log.w("NotificationPlugin","problem parsing notification extras");
+                    e.printStackTrace();
                 }
             }
 
@@ -312,10 +319,10 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
 
 
     @Override
-    public AlertDialog getErrorDialog(final Context baseContext) {
+    public AlertDialog getErrorDialog(final Activity deviceActivity) {
 
         if (Build.VERSION.SDK_INT < 18) {
-            return new AlertDialog.Builder(baseContext)
+            return new AlertDialog.Builder(deviceActivity)
                 .setTitle(R.string.pref_plugin_notifications)
                 .setMessage(R.string.plugin_not_available)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -326,14 +333,14 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
                 })
                 .create();
         } else {
-            return new AlertDialog.Builder(baseContext)
+            return new AlertDialog.Builder(deviceActivity)
                 .setTitle(R.string.pref_plugin_notifications)
                 .setMessage(R.string.no_permissions)
                 .setPositiveButton(R.string.open_settings, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                        baseContext.startActivity(intent);
+                        deviceActivity.startActivityForResult(intent, DeviceActivity.RESULT_NEEDS_RELOAD);
                     }
                 })
                 .setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener() {

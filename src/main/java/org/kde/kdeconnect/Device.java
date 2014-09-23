@@ -209,8 +209,6 @@ public class Device implements BaseLink.PackageReceiver {
 
     public void unpair() {
 
-        if (!isPaired()) return;
-
         //Log.e("Device","Unpairing (unpair)");
         pairStatus = PairStatus.NotPaired;
 
@@ -323,12 +321,14 @@ public class Device implements BaseLink.PackageReceiver {
 
         Log.i("Device","addLink "+link.getLinkProvider().getName()+" -> "+getName() + " active links: "+ links.size());
 
+        /*
         Collections.sort(links, new Comparator<BaseLink>() {
             @Override
             public int compare(BaseLink o, BaseLink o2) {
                 return o2.getLinkProvider().getPriority() - o.getLinkProvider().getPriority();
             }
         });
+        */
 
         link.addPackageReceiver(this);
 
@@ -408,7 +408,7 @@ public class Device implements BaseLink.PackageReceiver {
                             .setTicker(res.getString(R.string.pair_requested))
                             .setSmallIcon(android.R.drawable.ic_menu_help)
                             .setAutoCancel(true)
-                            .setDefaults(Notification.DEFAULT_SOUND)
+                            .setDefaults(Notification.DEFAULT_ALL)
                             .build();
 
 
@@ -452,13 +452,19 @@ public class Device implements BaseLink.PackageReceiver {
             }
         } else if (!isPaired()) {
 
-            //TODO: Notify the other side that we don't trust them
+            unpair();
             Log.e("onPackageReceived","Device not paired, ignoring package!");
 
         } else {
 
             for (Plugin plugin : plugins.values()) {
-                plugin.onPackageReceived(np);
+                try {
+                    plugin.onPackageReceived(np);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e("Device", "Exception in "+plugin.getDisplayName()+"'s onPackageReceived()");
+                }
+
             }
         }
 
@@ -613,7 +619,7 @@ public class Device implements BaseLink.PackageReceiver {
 
     public void setPluginEnabled(String pluginName, boolean value) {
         settings.edit().putBoolean(pluginName,value).commit();
-        if (value) addPlugin(pluginName);
+        if (value && isPaired() && isReachable()) addPlugin(pluginName);
         else removePlugin(pluginName);
     }
 
@@ -623,6 +629,9 @@ public class Device implements BaseLink.PackageReceiver {
         return enabled;
     }
 
+    public boolean hasPluginsLoaded() {
+        return !plugins.isEmpty();
+    }
 
     public void reloadPluginsFromSettings() {
 

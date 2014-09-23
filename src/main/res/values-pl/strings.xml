@@ -8,12 +8,16 @@
   <string name="pref_plugin_sftp_desc">Zezwala na zdalne przeglądanie systemu plików telefonu</string>
   <string name="pref_plugin_clipboard">Synchronizacja schowka</string>
   <string name="pref_plugin_clipboard_desc">Udostępnij zawartość schowka</string>
+  <string name="pref_plugin_mousepad">Zdalne sterowanie myszą</string>
+  <string name="pref_plugin_mousepad_desc">Steruj swoją myszą zdalnie</string>
   <string name="pref_plugin_mpris">Zdalne sterowanie multimediami</string>
   <string name="pref_plugin_mpris_desc">Steruj dźwiękiem/obrazem ze swojego telefonu</string>
   <string name="pref_plugin_ping">Ping</string>
   <string name="pref_plugin_ping_desc">Wysyłaj i otrzymuj pingi</string>
   <string name="pref_plugin_notifications">Powiadomienia synchronizacji</string>
   <string name="pref_plugin_notifications_desc">Uzyskaj dostęp do swoich powiadomień z innego urządzenia</string>
+  <string name="pref_plugin_sharereceiver">Udostępnij odbiornik</string>
+  <string name="pref_plugin_sharereceiver_desc">Zapisz przychodzące pliki do pamięci telefonu</string>
   <string name="plugin_not_available">Funkcja ta nie jest dostępna w twojej wersji Androida</string>
   <string name="device_list_empty">Brak urządzeń</string>
   <string name="ok">OK</string>
@@ -22,12 +26,15 @@
   <string name="no_permissions">Musisz przydzielić uprawnienia, aby uzyskać dostęp do powiadomień</string>
   <string name="send_ping">Wyślij ping</string>
   <string name="open_mpris_controls">Otwórz zdalne sterowanie</string>
+  <string name="open_mousepad">Otwórz sterowanie gładzikiem</string>
+  <string name="mousepad_info">Przesuń kciukiem po ekranie, aby przesunąć wskaźnik myszy</string>
   <string name="category_connected_devices">Podłączone urządzenia</string>
   <string name="category_not_paired_devices">Brak sparowanych urządzeń</string>
   <string name="category_remembered_devices">Zapamiętane urządzenia</string>
   <string name="plugins_failed_to_load">Nieudane wczytywanie wtyczki (stuknij po więcej informacji):</string>
   <string name="device_menu_plugins">Wybierz wtyczki</string>
   <string name="device_menu_unpair">Odparuj</string>
+  <string name="device_not_reachable">Sparowane urządzenie nieosiągalne</string>
   <string name="unknown_device">Nieznane urządzenie</string>
   <string name="error_not_reachable">Urządzenie nieosiągalne</string>
   <string name="error_already_requested">Już zażądano parowania</string>
@@ -39,8 +46,17 @@
   <string name="error_invalid_key">Otrzymano nieprawidłowy klucz</string>
   <string name="pair_requested">Zażądano parowania</string>
   <string name="pairing_request_from">Żądanie parowania z %1s</string>
+  <string name="received_url_title">Odebrano odsyłacz od %1s</string>
+  <string name="received_url_text">Znacznik do otwarcia \'%1s\'</string>
+  <string name="incoming_file_title">Plik przychodzący od %1s</string>
+  <string name="incoming_file_text">%1s</string>
+  <string name="received_file_title">Odebrano plik od %1s</string>
+  <string name="received_file_text">Znacznik do otwarcia \'%1s\'</string>
   <string name="tap_to_answer">Stuknij, aby odpowiedzieć</string>
   <string name="reconnect">Połącz ponownie</string>
+  <string name="right_click">Wyślij naciskając prawym</string>
+  <string name="middle_click">Wyślij naciskając środkowym</string>
+  <string name="show_keyboard">Pokaż klawiaturę</string>
   <string name="device_not_paired">Urządzenie niesparowane</string>
   <string name="request_pairing">Zażądaj sparowania</string>
   <string name="pairing_accept">Przyjmij</string>
@@ -55,11 +71,22 @@
   <string name="mpris_ff">Przewiń do przodu</string>
   <string name="mpris_next">Następny</string>
   <string name="mpris_volume">Głośność</string>
+  <string name="mpris_settings">Zdalne sterowanie multimediami</string>
   <string name="share_to">Współdziel z...</string>
   <string name="protocol_version_older">Urządzenie to używa starej wersji protokołu</string>
   <string name="protocol_version_newer">Urządzenie to używa nowszej wersji protokołu</string>
   <string name="general_settings">Ustawienia ogólne</string>
+  <string name="plugin_settings">Ustawienia ogólne</string>
   <string name="device_name">Nazwa urządzenia</string>
   <string name="device_name_preference_summary">%s</string>
   <string name="invalid_device_name">Nieprawidłowa nazwa urządzenia</string>
+  <string name="shareplugin_text_saved">Otrzymano tekst, zapisano do schowka</string>
+  <string name="share_notification_preference">Powiadomienia synchronizacji</string>
+  <string-array name="mpris_time_entries">
+    <item>10 seconds</item>
+    <item>20 seconds</item>
+    <item>30 seconds</item>
+    <item>1 minute</item>
+    <item>2 minutes</item>
+  </string-array>
 </resources>
