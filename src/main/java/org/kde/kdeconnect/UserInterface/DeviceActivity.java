@@ -57,13 +57,15 @@ public class DeviceActivity extends ActionBarActivity {
                             names[i] = p.getDisplayName();
                         }
                         ListView errorList = (ListView)findViewById(R.id.errors_list);
-                        if (!failedPlugins.isEmpty() && errorList.getHeaderViewsCount() == 0) {
-                            if (errorHeader == null) {
-                                errorHeader = new TextView(DeviceActivity.this);
-                                errorHeader.setPadding(0,24,0,0);
-                                errorHeader.setText(getResources().getString(R.string.plugins_failed_to_load));
+                        if (!failedPlugins.isEmpty()) {
+                            if (errorList.getHeaderViewsCount() == 0) {
+                                if (errorHeader == null) {
+                                    errorHeader = new TextView(DeviceActivity.this);
+                                    errorHeader.setPadding(0,24,0,0);
+                                    errorHeader.setText(getResources().getString(R.string.plugins_failed_to_load));
+                                }
+                                errorList.addHeaderView(errorHeader);
                             }
-                            errorList.addHeaderView(errorHeader);
                         } else {
                             errorList.removeHeaderView(errorHeader);
                         }
@@ -139,6 +141,9 @@ public class DeviceActivity extends ActionBarActivity {
                 setTitle(device.getName());
                 device.addPluginsChangedListener(pluginsChangedListener);
                 pluginsChangedListener.onPluginsChanged(device);
+                if (!device.hasPluginsLoaded()) {
+                    device.reloadPluginsFromSettings();
+                }
             }
         });
 
@@ -160,7 +165,7 @@ public class DeviceActivity extends ActionBarActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         menu.clear();
-        if (device.isPaired()) {
+        if (device != null && device.isPaired()) {
             menu.add(R.string.device_menu_plugins).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
