@@ -1,8 +1,10 @@
 package org.kde.kdeconnect.Plugins.MousePadPlugin;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
 import android.view.GestureDetector;
 import android.view.inputmethod.InputMethodManager;
 import android.view.Menu;
@@ -14,7 +16,7 @@ import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect_tp.R;
 
-public class MousePadActivity extends Activity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, MousePadGestureDetector.OnGestureListener {
+public class MousePadActivity extends ActionBarActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, MousePadGestureDetector.OnGestureListener {
 
     String deviceId;
 
@@ -33,6 +35,9 @@ public class MousePadActivity extends Activity implements GestureDetector.OnGest
 
     KeyListenerView keyListenerView;
 
+    enum ClickType {RIGHT,MIDDLE}
+
+    private ClickType doubleTapAction, tripleTapAction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +54,16 @@ public class MousePadActivity extends Activity implements GestureDetector.OnGest
         keyListenerView = (KeyListenerView)findViewById(R.id.keyListener);
         keyListenerView.setDeviceId(deviceId);
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String doubleTapSetting = prefs.getString(getString(R.string.mousepad_double_tap_key),
+                getString(R.string.mousepad_double_default));
+        String tripleTapSetting = prefs.getString(getString(R.string.mousepad_triple_tap_key),
+                getString(R.string.mousepad_triple_default));
+
+        doubleTapAction = getString(R.string.mousepad_right_value).equals(doubleTapSetting)?
+                ClickType.RIGHT : ClickType.MIDDLE;
+        tripleTapAction = getString(R.string.mousepad_right_value).equals(tripleTapSetting)?
+                ClickType.RIGHT : ClickType.MIDDLE;
     }
 
     @Override
@@ -211,13 +226,29 @@ public class MousePadActivity extends Activity implements GestureDetector.OnGest
 
     @Override
     public boolean onTripleFingerTap(MotionEvent ev) {
-        sendMiddleClick();
+        switch(tripleTapAction){
+            case RIGHT:
+                sendRightClick();
+                break;
+            default:
+            case MIDDLE:
+                sendMiddleClick();
+                break;
+        }
         return true;
     }
 
     @Override
     public boolean onDoubleFingerTap(MotionEvent ev) {
-        sendRightClick();
+        switch(doubleTapAction){
+            default:
+            case RIGHT:
+                sendRightClick();
+                break;
+            case MIDDLE:
+                sendMiddleClick();
+                break;
+        }
         return true;
     }
 
@@ -248,7 +279,7 @@ public class MousePadActivity extends Activity implements GestureDetector.OnGest
 
     private void showKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(keyListenerView, InputMethodManager.SHOW_IMPLICIT);
+        imm.toggleSoftInputFromWindow(keyListenerView.getWindowToken(), 0, 0);
     }
 
 }

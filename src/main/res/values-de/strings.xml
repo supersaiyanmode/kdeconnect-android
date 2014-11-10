@@ -8,7 +8,7 @@
   <string name="pref_plugin_sftp_desc">Erlaubt das Browsen des Dateisystems auf dem entfernten Handy</string>
   <string name="pref_plugin_clipboard">Abgleich der Zwischenablage</string>
   <string name="pref_plugin_clipboard_desc">Inhalt der Zwischenablage freigeben</string>
-  <string name="pref_plugin_mousepad">Fernbedienung</string>
+  <string name="pref_plugin_mousepad">Maus-Fernbedienung</string>
   <string name="pref_plugin_mpris">Multimedia-Fernbedienungen</string>
   <string name="pref_plugin_mpris_desc">Audio und Video mit Ihrem Telefon steuern</string>
   <string name="pref_plugin_ping">Ping</string>
@@ -43,11 +43,14 @@
   <string name="error_invalid_key">Ungültiger Schlüssel empfangen</string>
   <string name="pair_requested">Verbindung angefordert</string>
   <string name="pairing_request_from">Verbindungsanfrage von %1s</string>
+  <string name="received_url_title">Verknüpfung von %1s erhalten</string>
   <string name="incoming_file_title">Eingehende Datei von %1s</string>
   <string name="incoming_file_text">%1s</string>
   <string name="received_file_title">Datei von %1s erhalten</string>
   <string name="tap_to_answer">Tippen zum Antworten</string>
   <string name="reconnect">Erneut verbinden</string>
+  <string name="right_click">Rechtsklick senden</string>
+  <string name="middle_click">Mittelklick senden</string>
   <string name="show_keyboard">Tastatur anzeigen</string>
   <string name="device_not_paired">Das Gerät ist nicht verbunden</string>
   <string name="request_pairing">Verbindung angefordert</string>
@@ -75,6 +78,13 @@
   <string name="shareplugin_text_saved">Text empfangen und in der Zwischenablage gespeichert</string>
   <string name="share_notification_preference">Benachrichtigungs-Abgleich</string>
   <string name="share_notification_preference_summary">Beim Empfang einer Datei vibrieren und einen Sound abspielen</string>
+  <string name="sftp_internal_storage">Interner Speicher</string>
+  <string name="sftp_all_files">Alle Dateien</string>
+  <string name="sftp_sdcard_num">SD-Karte %d</string>
+  <string name="sftp_sdcard">SD-Karte</string>
+  <string name="sftp_readonly">(Nur lesen)</string>
+  <string name="sftp_camera">Kamerabilder</string>
+
   <string-array name="mpris_time_entries">
     <item>10 Sekunden</item>
     <item>20 Sekunden</item>

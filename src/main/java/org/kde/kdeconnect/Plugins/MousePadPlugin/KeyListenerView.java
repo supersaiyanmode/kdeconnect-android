@@ -6,6 +6,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 
 import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect.Device;
@@ -22,7 +24,7 @@ public class KeyListenerView extends View  {
         int i = 0;
         SpecialKeysMap.put(KeyEvent.KEYCODE_DEL, ++i);              // 1
         SpecialKeysMap.put(KeyEvent.KEYCODE_TAB, ++i);              // 2
-        SpecialKeysMap.put(KeyEvent.KEYCODE_ENTER, ++i);            // 3
+        SpecialKeysMap.put(KeyEvent.KEYCODE_ENTER, 12); ++i;        // 3 is not used, return is 12 instead
         SpecialKeysMap.put(KeyEvent.KEYCODE_DPAD_LEFT, ++i);        // 4
         SpecialKeysMap.put(KeyEvent.KEYCODE_DPAD_UP, ++i);          // 5
         SpecialKeysMap.put(KeyEvent.KEYCODE_DPAD_RIGHT, ++i);       // 6
@@ -47,6 +49,12 @@ public class KeyListenerView extends View  {
 
         setFocusable(true);
         setFocusableInTouchMode(true);
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
+        return null;
     }
 
     @Override

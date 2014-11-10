@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.kde.kdeconnect_tp"
-    android:versionCode="720"
-    android:versionName="0.7.2">
+    android:versionCode="732"
+    android:versionName="0.7.3.2">
 
     <uses-sdk android:minSdkVersion="9"
               android:targetSdkVersion="19" />
@@ -26,7 +26,6 @@
     <uses-permission android:name="android.permission.RECEIVE_SMS" android:required="false" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="org.kde.kdeconnect.ktp.permission" />
 
@@ -139,6 +138,8 @@
             android:theme="@style/Theme.AppCompat"
             android:name="org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadActivity"
             android:label="@string/remote_control"
+            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="fullSensor"
             android:parentActivityName="org.kde.kdeconnect.UserInterface.DeviceActivity"
             >
