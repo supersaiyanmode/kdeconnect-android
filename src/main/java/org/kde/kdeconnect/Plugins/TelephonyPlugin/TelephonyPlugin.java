@@ -159,6 +159,9 @@ public class TelephonyPlugin extends Plugin {
             np.set("phoneNumber",phoneNumber);
         }
 
+        //Hack to make this notification appear on desktop after the Hangouts notification
+        try { Thread.sleep(300); } catch(Exception e) { }
+
         device.sendPackage(np);
     }
 
