@@ -20,12 +20,21 @@
 
 package org.kde.kdeconnect.Plugins.SharePlugin;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -51,7 +60,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-public class ShareToReceiver extends ActionBarActivity {
+public class ShareActivity extends ActionBarActivity {
 
     private MenuItem menuProgress;
 
@@ -68,7 +77,7 @@ public class ShareToReceiver extends ActionBarActivity {
         switch (item.getItemId()) {
             case R.id.menu_refresh:
                 updateComputerList();
-                BackgroundService.RunCommand(ShareToReceiver.this, new BackgroundService.InstanceCallback() {
+                BackgroundService.RunCommand(ShareActivity.this, new BackgroundService.InstanceCallback() {
                     @Override
                     public void onServiceStart(BackgroundService service) {
                         service.onNetworkChange();
@@ -127,7 +136,7 @@ public class ShareToReceiver extends ActionBarActivity {
                     @Override
                     public void run() {
                         ListView list = (ListView) findViewById(R.id.listView1);
-                        list.setAdapter(new ListAdapter(ShareToReceiver.this, items));
+                        list.setAdapter(new ListAdapter(ShareActivity.this, items));
                         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -151,8 +160,8 @@ public class ShareToReceiver extends ActionBarActivity {
                                         queuedSendUriList(device, uriList);
 
                                     } catch (Exception e) {
+                                        Log.e("ShareActivity", "Exception");
                                         e.printStackTrace();
-                                        Log.e("ShareToReceiver", "Exception");
                                     }
 
                                 } else if (extras.containsKey(Intent.EXTRA_TEXT)) {
@@ -202,7 +211,22 @@ public class ShareToReceiver extends ActionBarActivity {
             InputStream inputStream = cr.openInputStream(uri);
 
             NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_SHARE);
-            int size = -1;
+            long size = -1;
+
+            final NotificationManager notificationManager = (NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            final int notificationId = (int)System.currentTimeMillis();
+            final NotificationCompat.Builder builder ;
+            Resources res = getApplicationContext().getResources();
+            builder = new NotificationCompat.Builder(getApplicationContext())
+                    .setContentTitle(res.getString(R.string.outgoing_file_title, device.getName()))
+                    .setTicker(res.getString(R.string.outgoing_file_title, device.getName()))
+                    .setSmallIcon(android.R.drawable.stat_sys_upload)
+                    .setAutoCancel(true)
+                    .setOngoing(true)
+                    .setProgress(100,0,true);
+            notificationManager.notify(notificationId,builder.build());
+
+            final Handler progressBarHandler = new Handler(Looper.getMainLooper());
 
             if (uri.getScheme().equals("file")) {
                 // file:// is a non media uri, so we cannot query the ContentProvider
@@ -210,11 +234,11 @@ public class ShareToReceiver extends ActionBarActivity {
                 np.set("filename", uri.getLastPathSegment());
 
                 try {
-                    size = (int)new File(uri.getPath()).length();
+                    size = new File(uri.getPath()).length();
                     np.setPayload(inputStream, size);
                 } catch(Exception e) {
+                    Log.e("ShareActivity", "Could not obtain file size");
                     e.printStackTrace();
-                    Log.e("ShareToReceiver", "Could not obtain file size");
                 }
 
             }else{
@@ -228,10 +252,10 @@ public class ShareToReceiver extends ActionBarActivity {
                     cursor.moveToFirst();
                     String path = cursor.getString(column_index);
                     np.set("filename", Uri.parse(path).getLastPathSegment());
-                    np.set("size", (int)new File(path).length());
+                    size = new File(path).length();
                 } catch(Exception unused) {
 
-                    Log.e("ShareToReceiver", "Could not resolve media to a file, trying to get info as media");
+                    Log.e("ShareActivity", "Could not resolve media to a file, trying to get info as media");
 
                     try {
                         int column_index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
@@ -240,7 +264,7 @@ public class ShareToReceiver extends ActionBarActivity {
                         np.set("filename", name);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Log.e("ShareToReceiver", "Could not obtain file name");
+                        Log.e("ShareActivity", "Could not obtain file name");
                     }
 
                     try {
@@ -249,8 +273,8 @@ public class ShareToReceiver extends ActionBarActivity {
                         //For some reason this size can differ from the actual file size!
                         size = cursor.getInt(column_index);
                     } catch(Exception e) {
+                        Log.e("ShareActivity", "Could not obtain file size");
                         e.printStackTrace();
-                        Log.e("ShareToReceiver", "Could not obtain file size");
                     }
                 } finally {
                     cursor.close();
@@ -260,22 +284,84 @@ public class ShareToReceiver extends ActionBarActivity {
 
             }
 
-            device.sendPackage(np, new Device.SendPackageFinishedCallback() {
+            final String filename = np.getString("filename");
+
+            builder.setContentText(res.getString(R.string.outgoing_file_text,filename));
+            notificationManager.notify(notificationId,builder.build());
+
+            device.sendPackage(np, new Device.SendPackageStatusCallback() {
+
+                int prevProgress = 0;
+
                 @Override
-                public void sendSuccessful() {
-                    if (!uriList.isEmpty()) queuedSendUriList(device, uriList);
-                    else Log.e("ShareToReceiver", "All files sent");
+                public void onProgressChanged(final int progress) {
+                    if (progress != prevProgress) {
+                        prevProgress = progress;
+                        progressBarHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                builder.setProgress(100, progress, false);
+                                notificationManager.notify(notificationId, builder.build());
+                            }
+                        });
+                    }
                 }
 
                 @Override
-                public void sendFailed() {
-                    Log.e("ShareToReceiver", "Failed to send file");
+                public void onSuccess() {
+                    progressBarHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Resources res = getApplicationContext().getResources();
+                            NotificationCompat.Builder builder1 = new NotificationCompat.Builder(getApplicationContext())
+                                    .setContentTitle(res.getString(R.string.sent_file_title, device.getName()))
+                                    .setContentText(res.getString(R.string.sent_file_text, filename))
+                                    .setTicker(res.getString(R.string.sent_file_title, device.getName()))
+                                    .setSmallIcon(android.R.drawable.stat_sys_upload_done)
+                                    .setOngoing(false)
+                                    .setAutoCancel(true);
+
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                            if (prefs.getBoolean("share_notification_preference", true)) {
+                                builder1.setDefaults(Notification.DEFAULT_ALL);
+                            }
+                            notificationManager.notify(notificationId, builder1.build());
+                        }
+                    });
+
+                    if (!uriList.isEmpty()) queuedSendUriList(device, uriList);
+                    else Log.i("ShareActivity", "All files sent");
+                }
+
+                @Override
+                public void onFailure(Throwable e) {
+                    progressBarHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Resources res = getApplicationContext().getResources();
+                            NotificationCompat.Builder builder2 = new NotificationCompat.Builder(getApplicationContext())
+                                    .setContentTitle(res.getString(R.string.sent_file_failed_title, device.getName()))
+                                    .setContentText(res.getString(R.string.sent_file_failed_text, filename))
+                                    .setTicker(res.getString(R.string.sent_file_title, device.getName()))
+                                    .setSmallIcon(android.R.drawable.stat_notify_error)
+                                    .setOngoing(false)
+                                    .setAutoCancel(true);
+
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                            if (prefs.getBoolean("share_notification_preference", true)) {
+                                builder2.setDefaults(Notification.DEFAULT_ALL);
+                            }
+                            notificationManager.notify(notificationId, builder2.build());
+                        }
+                    });
+
+                    Log.e("ShareActivity", "Failed to send file");
                 }
             });
 
         } catch (Exception e) {
+            Log.e("ShareActivity", "Exception sending files");
             e.printStackTrace();
-            Log.e("ShareToReceiver", "Exception sending files");
         }
 
     }

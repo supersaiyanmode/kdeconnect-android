@@ -103,11 +103,11 @@ public class SharePlugin extends Plugin {
         try {
             if (np.hasPayload()) {
 
-                Log.e("SharePlugin", "hasPayload");
+                Log.i("SharePlugin", "hasPayload");
 
                 final InputStream input = np.getPayload();
-                final int fileLength = np.getPayloadSize();
-                final String filename = np.getString("filename", new Long(System.currentTimeMillis()).toString());
+                final long fileLength = np.getPayloadSize();
+                final String filename = np.getString("filename", Long.toString(System.currentTimeMillis()));
 
                 String deviceDir = FilesHelper.toFileSystemSafeName(device.getName());
                 //Get the external storage and append "/kdeconnect/DEVICE_NAME/"
@@ -121,7 +121,7 @@ public class SharePlugin extends Plugin {
                 //Append filename to the destination path
                 final File destinationFullPath = new File(destinationDir, filename);
 
-                Log.e("SharePlugin", "destinationFullPath:" + destinationFullPath);
+                //Log.e("SharePlugin", "destinationFullPath:" + destinationFullPath);
 
                 final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -143,18 +143,20 @@ public class SharePlugin extends Plugin {
                     public void run() {
                         try {
                             OutputStream output = new FileOutputStream(destinationFullPath.getPath());
-
                             byte data[] = new byte[1024];
-                            long total = 0;
+                            long progress = 0, prevProgressPercentage = 0;
                             int count;
                             while ((count = input.read(data)) >= 0) {
-                                total += count;
+                                progress += count;
                                 output.write(data, 0, count);
                                 if (fileLength > 0) {
-                                    if (total >= fileLength) break;
-                                    float progress = (total * 100 / fileLength);
-                                    builder.setProgress(100,(int)progress,false);
-                                    notificationManager.notify(notificationId,builder.build());
+                                    if (progress >= fileLength) break;
+                                    long progressPercentage = (progress * 100 / fileLength);
+                                    if (progressPercentage != prevProgressPercentage) {
+                                        prevProgressPercentage = progressPercentage;
+                                        builder.setProgress(100, (int) progressPercentage, false);
+                                        notificationManager.notify(notificationId, builder.build());
+                                    }
                                 }
                                 //else Log.e("SharePlugin", "Infinite loop? :D");
                             }
@@ -163,7 +165,7 @@ public class SharePlugin extends Plugin {
                             output.close();
                             input.close();
 
-                            Log.e("SharePlugin", "Transfer finished");
+                            Log.i("SharePlugin", "Transfer finished");
 
                             //Make sure it is added to the Android Gallery
                             Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -210,7 +212,7 @@ public class SharePlugin extends Plugin {
                 }).start();
 
             } else if (np.has("text")) {
-                Log.e("SharePlugin", "hasText");
+                Log.i("SharePlugin", "hasText");
 
                 String text = np.getString("text");
                 if(android.os.Build.VERSION.SDK_INT >= 11) {
@@ -225,13 +227,12 @@ public class SharePlugin extends Plugin {
 
                 String url = np.getString("url");
 
-                Log.e("SharePlugin", "hasUrl: "+url);
+                Log.i("SharePlugin", "hasUrl: "+url);
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                //Do not launch it directly, show a notification instead
-                //context.startActivity(browserIntent);
+                //Do not launch url directly, show a notification instead
 
                 Resources res = context.getResources();
                 TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);

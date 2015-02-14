@@ -46,8 +46,6 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Timer;
@@ -191,10 +189,9 @@ public class Device implements BaseLink.PackageReceiver {
 
         //Send our own public key
         NetworkPackage np = NetworkPackage.createPublicKeyPackage(context);
-        sendPackage(np, new SendPackageFinishedCallback(){
-
+        sendPackage(np, new SendPackageStatusCallback(){
             @Override
-            public void sendSuccessful() {
+            public void onSuccess() {
                 if (pairingTimer != null) pairingTimer.cancel();
                 pairingTimer = new Timer();
                 pairingTimer.schedule(new TimerTask() {
@@ -211,7 +208,7 @@ public class Device implements BaseLink.PackageReceiver {
             }
 
             @Override
-            public void sendFailed() {
+            public void onFailure(Throwable e) {
                 for (PairingCallback cb : pairingCallback) {
                     cb.pairingFailed(context.getString(R.string.error_could_not_send_package));
                 }
@@ -233,7 +230,7 @@ public class Device implements BaseLink.PackageReceiver {
         pairStatus = PairStatus.NotPaired;
 
         SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-        preferences.edit().remove(deviceId).commit();
+        preferences.edit().remove(deviceId).apply();
 
         NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_PAIR);
         np.set("pair", false);
@@ -255,14 +252,14 @@ public class Device implements BaseLink.PackageReceiver {
 
         //Store as trusted device
         SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-        preferences.edit().putBoolean(deviceId,true).commit();
+        preferences.edit().putBoolean(deviceId,true).apply();
 
         //Store device information needed to create a Device object in a future
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("deviceName", getName());
         String encodedPublicKey = Base64.encodeToString(publicKey.getEncoded(), 0);
         editor.putString("publicKey", encodedPublicKey);
-        editor.commit();
+        editor.apply();
 
         reloadPluginsFromSettings();
 
@@ -278,13 +275,13 @@ public class Device implements BaseLink.PackageReceiver {
 
         //Send our own public key
         NetworkPackage np = NetworkPackage.createPublicKeyPackage(context);
-        sendPackage(np, new SendPackageFinishedCallback() {
+        sendPackage(np, new SendPackageStatusCallback() {
             @Override
-            public void sendSuccessful() {
+            protected void onSuccess() {
                 pairingDone();
             }
             @Override
-            public void sendFailed() {
+            protected void onFailure(Throwable e) {
                 Log.e("Device","Unpairing (sendFailed B)");
                 pairStatus = PairStatus.NotPaired;
                 for (PairingCallback cb : pairingCallback) {
@@ -461,7 +458,7 @@ public class Device implements BaseLink.PackageReceiver {
                     }
                 } else if (pairStatus == PairStatus.Paired) {
                     SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-                    preferences.edit().remove(deviceId).commit();
+                    preferences.edit().remove(deviceId).apply();
                     reloadPluginsFromSettings();
                 }
 
@@ -490,68 +487,71 @@ public class Device implements BaseLink.PackageReceiver {
 
     }
 
-    public interface SendPackageFinishedCallback {
-        void sendSuccessful();
-        void sendFailed();
+    public static abstract class SendPackageStatusCallback {
+        protected abstract void onSuccess();
+        protected abstract void onFailure(Throwable e);
+        protected void onProgressChanged(int percent) { }
+
+        private boolean success = false;
+        public void sendSuccess() {
+            success = true;
+            onSuccess();
+        }
+        public void sendFailure(Throwable e) {
+            if (e != null) {
+                e.printStackTrace();
+                Log.e("sendPackage", "Exception: " + e.getMessage());
+            } else {
+                Log.e("sendPackage", "Unknown (null) exception");
+            }
+            onFailure(e);
+        }
+        public void sendProgress(int percent) { onProgressChanged(percent); }
     }
 
+
     public void sendPackage(NetworkPackage np) {
-        sendPackage(np,null);
+        sendPackage(np,new SendPackageStatusCallback() {
+            @Override
+            protected void onSuccess() { }
+            @Override
+            protected void onFailure(Throwable e) { }
+        });
     }
 
     //Async
-    public void sendPackage(final NetworkPackage np, final SendPackageFinishedCallback callback) {
+    public void sendPackage(final NetworkPackage np, final SendPackageStatusCallback callback) {
 
+        //Log.e("sendPackage", "Sending package...");
+        //Log.e("sendPackage", np.serialize());
 
-        final Exception backtrace = new Exception();
+        final Throwable backtrace = new Throwable();
         new Thread(new Runnable() {
             @Override
             public void run() {
 
-                //Log.e("sendPackage", "Sending package...");
-                //Log.e("sendPackage", np.serialize());
-
                 boolean useEncryption = (!np.getType().equals(NetworkPackage.PACKAGE_TYPE_PAIR) && isPaired());
 
-                //We need a copy to avoid concurrent modification exception if the original list changes
+                //Make a copy to avoid concurrent modification exception if the original list changes
                 ArrayList<BaseLink> mLinks = new ArrayList<BaseLink>(links);
-
-                boolean success = false;
-                try {
-                    for (BaseLink link : mLinks) {
-                        if (useEncryption) {
-                            success = link.sendPackageEncrypted(np, publicKey);
-                        } else {
-                            success = link.sendPackage(np);
-                        }
-                        if (success) break;
+                for (final BaseLink link : mLinks) {
+                    if (useEncryption) {
+                        link.sendPackageEncrypted(np, callback, publicKey);
+                    } else {
+                        link.sendPackage(np, callback);
                     }
-                } catch(Exception e) {
-                    e.printStackTrace();
-                    Log.e("sendPackage","Error while sending package");
-                    success = false;
+                    if (callback.success) break; //If the link didn't call sendSuccess(), try the next one
                 }
 
-                if (success) {
-                   // Log.e("sendPackage","Package sent");
-                } else {
+                if (!callback.success) {
+                    Log.e("sendPackage", "No device link (of "+mLinks.size()+" available) could send the package. Package lost!");
                     backtrace.printStackTrace();
-                    Log.e("sendPackage","Error: Package could not be sent ("+mLinks.size()+" links available)");
-                }
-
-                if (callback != null) {
-                    if (success) callback.sendSuccessful();
-                    else callback.sendFailed();
                 }
 
             }
         }).start();
 
     }
-
-
-
-
 
     //
     // Plugin-related functions
@@ -594,7 +594,6 @@ public class Device implements BaseLink.PackageReceiver {
                     success = false;
                     e.printStackTrace();
                     Log.e("addPlugin", "Exception loading plugin " + name);
-                    return;
                 }
 
                 if (success) {
@@ -645,7 +644,7 @@ public class Device implements BaseLink.PackageReceiver {
     }
 
     public void setPluginEnabled(String pluginName, boolean value) {
-        settings.edit().putBoolean(pluginName,value).commit();
+        settings.edit().putBoolean(pluginName,value).apply();
         if (value && isPaired() && isReachable()) addPlugin(pluginName);
         else removePlugin(pluginName);
     }
