@@ -28,11 +28,13 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.Button;
 
+import org.atteo.classindex.IndexSubclasses;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 import org.kde.kdeconnect.UserInterface.PluginSettingsActivity;
 import org.kde.kdeconnect.UserInterface.SettingsActivity;
 
+@IndexSubclasses
 public abstract class Plugin {
 
     protected Device device;

@@ -25,6 +25,6 @@
 -dontwarn org.apache.mina.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.slf4j.**
+-dontwarn javax.**
 
 -keepattributes SourceFile,LineNumberTable
-

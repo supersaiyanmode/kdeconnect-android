@@ -24,6 +24,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
+import org.atteo.classindex.ClassIndex;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.Plugins.BatteryPlugin.BatteryPlugin;
 import org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadPlugin;
@@ -82,16 +83,9 @@ public class PluginFactory {
     private static final Map<String, PluginInfo> availablePluginsInfo = new TreeMap<String, PluginInfo>();
 
     static {
-        //TODO: Use reflection to find all subclasses of Plugin, instead of adding them manually
-        PluginFactory.registerPlugin(TelephonyPlugin.class);
-        PluginFactory.registerPlugin(PingPlugin.class);
-        PluginFactory.registerPlugin(MprisPlugin.class);
-        PluginFactory.registerPlugin(ClipboardPlugin.class);
-        PluginFactory.registerPlugin(BatteryPlugin.class);
-        PluginFactory.registerPlugin(SftpPlugin.class);
-        PluginFactory.registerPlugin(NotificationsPlugin.class);
-        PluginFactory.registerPlugin(MousePadPlugin.class);
-        PluginFactory.registerPlugin(SharePlugin.class);
+        for (Class<? extends Plugin> plugin : ClassIndex.getSubclasses(Plugin.class)) {
+            PluginFactory.registerPlugin(plugin);
+        }
     }
 
     public static PluginInfo getPluginInfo(Context context, String pluginKey) {
