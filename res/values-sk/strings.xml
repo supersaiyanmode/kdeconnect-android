@@ -46,6 +46,7 @@
   <string name="device_menu_plugins">Nastavenia pluginu</string>
   <string name="device_menu_unpair">Odpárovať</string>
   <string name="device_not_reachable">Spárované zariadenie nedostupné</string>
+  <string name="pair_new_device">Spárovať nové zariadenie</string>
   <string name="unknown_device">Neznáme zariadenie</string>
   <string name="error_not_reachable">Zariadenie nedostupné</string>
   <string name="error_already_requested">Spárovanie už vyžiadané</string>
