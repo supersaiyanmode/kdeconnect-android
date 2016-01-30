@@ -33,8 +33,8 @@
   <string name="mousepad_double_tap_settings_title">Ustaw działanie po dwukrotnym stuknięciu palcem</string>
   <string name="mousepad_triple_tap_settings_title">Ustaw działanie po trzykrotnym stuknięciu palcem</string>
   <string-array name="mousepad_tap_entries">
-    <item>Naciśnięcie prawym</item>
-    <item>Naciśnięcie środkowym</item>
+    <item>Kliknięcie prawym</item>
+    <item>Kliknięcie środkowym</item>
     <item>Nic</item>
   </string-array>
   <string name="mousepad_double_default">prawo</string>
