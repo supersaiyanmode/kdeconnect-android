@@ -46,6 +46,7 @@
   <string name="device_menu_plugins">Nastavení modulů</string>
   <string name="device_menu_unpair">Zrušit párování</string>
   <string name="device_not_reachable">Spárované zařízení je nedostupné</string>
+  <string name="pair_new_device">Spárovat nové zařízení</string>
   <string name="unknown_device">Neznámé zařízení</string>
   <string name="error_not_reachable">Zařízení je nedostupné</string>
   <string name="error_already_requested">Párování již bylo vyžádáno</string>
