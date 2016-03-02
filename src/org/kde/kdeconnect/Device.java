@@ -153,9 +153,6 @@ public class Device implements BaseLink.PackageReceiver {
             byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
             publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyBytes));
         } catch (Exception e) {
-            e.printStackTrace();
-            //Do not unpair, they may be paired in some other way
-            Log.e("KDE/Device","Exception");
         }
 
         reloadPluginsFromSettings();
