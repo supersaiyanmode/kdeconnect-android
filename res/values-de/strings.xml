@@ -29,6 +29,8 @@
   <string name="send_ping">Ping senden</string>
   <string name="open_mpris_controls">Multimedia-Bedienung</string>
   <string name="open_mousepad">Ferneingabe</string>
+  <string name="mousepad_double_tap_settings_title">Aktionsausführung bei Berührung mit zwei Fingern einstellen</string>
+  <string name="mousepad_triple_tap_settings_title">Aktionsausführung bei Berührung mit drei Fingern einstellen</string>
   <string-array name="mousepad_tap_entries">
     <item>Rechtsklick</item>
     <item>Mittelklick</item>
