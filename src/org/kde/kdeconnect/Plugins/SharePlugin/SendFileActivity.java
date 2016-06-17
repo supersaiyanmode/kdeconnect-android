@@ -21,8 +21,11 @@
 package org.kde.kdeconnect.Plugins.SharePlugin;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -32,6 +35,8 @@ import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect_tp.R;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 
@@ -46,24 +51,27 @@ public class SendFileActivity extends ActionBarActivity {
         mDeviceId = getIntent().getStringExtra("deviceId");
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        }
         try {
             startActivityForResult(
                     Intent.createChooser(intent, getString(R.string.send_files)), Activity.RESULT_FIRST_USER);
-        } catch (android.content.ActivityNotFoundException ex) {
+        } catch (ActivityNotFoundException ex) {
             Toast.makeText(this, R.string.no_file_browser, Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
+    ArrayList<InputStream> openstuff = new ArrayList<>();
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         switch (requestCode) {
             case Activity.RESULT_FIRST_USER:
                 if (resultCode == RESULT_OK) {
-                    final Uri uri = data.getData();
-                    Log.e("SendFileActivity", "File Uri: " + uri.toString());
                     BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
                         @Override
                         public void onServiceStart(BackgroundService service) {
@@ -72,9 +80,30 @@ public class SendFileActivity extends ActionBarActivity {
                                 finish();
                             }
                             ArrayList<Uri> uris = new ArrayList<>();
-                            uris.add(uri);
-                            SharePlugin.queuedSendUriList(getApplicationContext(), device, uris);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                                ClipData clipData = data.getClipData();
+                                if (clipData != null) {
+                                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                                        Uri uri = clipData.getItemAt(i).getUri();
+                                        Log.i("SendFileActivity", "File " + i + " Uri: " + uri);
+                                        try {
+                                            openstuff.add(getContentResolver().openInputStream(uri));
+                                        } catch (FileNotFoundException e) {
+                                            e.printStackTrace();
+                                        }
+                                        uris.add(uri);
+                                    }
+                                }
+                            }
+                            if (uris.isEmpty()) {
+                                Uri uri = data.getData();
+                                Log.i("SendFileActivity", "File Uri: " + uri);
+                                uris.add(uri);
+                            }
 
+                            if (!uris.isEmpty()) {
+                                SharePlugin.queuedSendUriList(getApplicationContext(), device, uris);
+                            }
                         }
                     });
                 }
