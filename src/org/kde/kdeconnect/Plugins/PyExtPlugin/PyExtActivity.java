@@ -57,22 +57,7 @@ public class PyExtActivity extends ActionBarActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ListView view = (ListView) findViewById(R.id.pyext_listview);
-
-                        final ArrayList<ListAdapter.Item> commandItems = new ArrayList<>();
-                        for (final Script script: scripts) {
-                            commandItems.add(new EntryItem(script.getName(), script.getGuid()));
-                        }
-
-                        final ListAdapter adapter = new ListAdapter(PyExtActivity.this, commandItems);
-
-                        view.setAdapter(adapter);
-                        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                Log.i("PyExt", scripts.get(i).getName() + " being executed.");
-                            }
-                        });
+                        reloadScriptsList(plugin, scripts);
                     }
                 });
             }
@@ -87,5 +72,24 @@ public class PyExtActivity extends ActionBarActivity {
         deviceId = getIntent().getStringExtra("deviceId");
 
         updateView();
+    }
+
+    private void reloadScriptsList(final PyExtPlugin plugin, final List<Script> scripts) {
+        final ListView view = (ListView) findViewById(R.id.pyext_listview);
+
+        final ArrayList<ListAdapter.Item> commandItems = new ArrayList<>();
+        for (final Script script: scripts) {
+            commandItems.add(new EntryItem(script.getName(), script.getGuid()));
+        }
+
+        final ListAdapter adapter = new ListAdapter(PyExtActivity.this, commandItems);
+
+        view.setAdapter(adapter);
+        view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                plugin.executeScript(scripts.get(i));
+            }
+        });
     }
 }

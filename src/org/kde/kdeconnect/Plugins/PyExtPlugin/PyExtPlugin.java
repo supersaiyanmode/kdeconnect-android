@@ -60,7 +60,6 @@ public class PyExtPlugin extends Plugin {
             Log.e("PyExtPlugin", "PyExt plugin should not receive packets other than pings!");
             return false;
         }
-        Log.i("PyExtPlugin", "Got a PyExt package.");
         if (!np.has("pyext_type")) {
             return false;
         }
@@ -68,6 +67,7 @@ public class PyExtPlugin extends Plugin {
         final String type = np.getString("pyext_type");
         if ("ScriptListResponse".equals(type)) {
             scripts = new ArrayList<>();
+
             final JSONArray arr = np.getJSONArray("pyext_response");
             for (int i = 0; i < arr.length(); i++) {
                 try {
@@ -122,5 +122,14 @@ public class PyExtPlugin extends Plugin {
         device.sendPackage(np);
     }
 
+    public void executeScript(Script script) {
+        final NetworkPackage np = new NetworkPackage(PACKAGE_TYPE_PYEXT);
+        np.set("pyext_type", "ScriptExecuteRequest");
+        np.set("script_guid", script.getGuid());
+        device.sendPackage(np);
+        Log.i("PyExt", "Sent command to execute script with guid: " + script.getGuid());
+    }
+
     private List<Script> scripts;
+
 }
