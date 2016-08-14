@@ -83,7 +83,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.kde.kdeconnect.UserInterface.SettingsActivity" />
         </activity>
-
+        <activity
+            android:name="org.kde.kdeconnect.Plugins.PyExtPlugin.PyExtActivity"
+            android:label="@string/device_menu_plugins"
+            android:parentActivityName="org.kde.kdeconnect.UserInterface.MaterialActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.kde.kdeconnect.UserInterface.MaterialActivity" />
+        </activity>
         <receiver android:name="org.kde.kdeconnect.KdeConnectBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />

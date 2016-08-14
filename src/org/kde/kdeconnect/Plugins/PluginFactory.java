@@ -32,6 +32,7 @@ import org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadPlugin;
 import org.kde.kdeconnect.Plugins.MprisPlugin.MprisPlugin;
 import org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationsPlugin;
 import org.kde.kdeconnect.Plugins.PingPlugin.PingPlugin;
+import org.kde.kdeconnect.Plugins.PyExtPlugin.PyExtPlugin;
 import org.kde.kdeconnect.Plugins.ReceiveNotificationsPlugin.ReceiveNotificationsPlugin;
 import org.kde.kdeconnect.Plugins.RunCommandPlugin.RunCommandPlugin;
 import org.kde.kdeconnect.Plugins.SftpPlugin.SftpPlugin;
@@ -124,6 +125,7 @@ public class PluginFactory {
         //PluginFactory.registerPlugin(TelepathyPlugin.class);
         PluginFactory.registerPlugin(FindMyPhonePlugin.class);
         PluginFactory.registerPlugin(RunCommandPlugin.class);
+        PluginFactory.registerPlugin(PyExtPlugin.class);
     }
 
     public static PluginInfo getPluginInfo(Context context, String pluginKey) {
