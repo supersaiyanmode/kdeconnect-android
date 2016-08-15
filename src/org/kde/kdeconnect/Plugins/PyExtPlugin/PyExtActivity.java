@@ -79,7 +79,7 @@ public class PyExtActivity extends ActionBarActivity {
 
         final ArrayList<ListAdapter.Item> commandItems = new ArrayList<>();
         for (final Script script: scripts) {
-            commandItems.add(new EntryItem(script.getName(), script.getGuid()));
+            commandItems.add(new EntryItem(script.getName(), script.getDescription()));
         }
 
         final ListAdapter adapter = new ListAdapter(PyExtActivity.this, commandItems);

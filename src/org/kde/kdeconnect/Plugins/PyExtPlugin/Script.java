@@ -15,12 +15,14 @@ import java.util.List;
 public class Script {
 
     private final String name;
+    private final String description;
     private final String guid;
     private final List<String> params;
 
-    private Script(final String guid, final String name, final List<String> params) {
+    private Script(final String guid, final String name, final String description, final List<String> params) {
         this.guid = guid;
         this.name = name;
+        this.description = description;
         this.params = params;
     }
 
@@ -31,6 +33,7 @@ public class Script {
 
         try {
             final String name = obj.getString("name");
+            final String desc = obj.getString("description");
             final String guid = obj.getString("guid");
             final List<String> params = new ArrayList<>();
             if (obj.has("params")) {
@@ -39,7 +42,7 @@ public class Script {
                     params.add(arr.getString(i));
                 }
             }
-            return new Script(guid, name, params);
+            return new Script(guid, name, desc, params);
         } catch (JSONException e) {
             Log.e("PyExt", "JSONException", e);
             throw new IllegalArgumentException("Unable to parse Script info.", e);
@@ -56,5 +59,9 @@ public class Script {
 
     public List<String> getParams() {
         return params;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
