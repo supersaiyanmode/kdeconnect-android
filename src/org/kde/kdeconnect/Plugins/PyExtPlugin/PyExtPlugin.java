@@ -26,17 +26,20 @@ import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class PyExtPlugin extends Plugin {
-
-    public final static String PACKAGE_TYPE_PYEXT = "kdeconnect.pyext";
+    private Map<String, PyExtEventHandler> listeners;
+    private List<Script> scripts;
 
     @Override
     public String getDisplayName() {
@@ -56,7 +59,7 @@ public class PyExtPlugin extends Plugin {
 
     @Override
     public boolean onPackageReceived(NetworkPackage np) {
-        if (!np.getType().equals(PACKAGE_TYPE_PYEXT)) {
+        if (!np.getType().equals(PyExtConstants.PACKAGE_TYPE_PYEXT)) {
             Log.e("PyExtPlugin", "PyExt plugin should not receive packets other than pings!");
             return false;
         }
@@ -68,13 +71,24 @@ public class PyExtPlugin extends Plugin {
         if ("ScriptListResponse".equals(type)) {
             scripts = new ArrayList<>();
 
+            try {
+                Log.i("PyExt", np.serialize());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             final JSONArray arr = np.getJSONArray("pyext_response");
             for (int i = 0; i < arr.length(); i++) {
+                final Script script;
                 try {
-                    scripts.add(Script.fromJSON(arr.getJSONObject(i)));
+                    script = Script.fromJSON(arr.getJSONObject(i));
                 } catch (JSONException e) {
-                    Log.i("PyExt", "Unable to list scripts.", e);
+                    Log.i("PyExt", "Unable to parse script info.", e);
+                    continue;
                 }
+
+
+
+                scripts.add(script);
             }
         }
         return true;
@@ -104,12 +118,12 @@ public class PyExtPlugin extends Plugin {
 
     @Override
     public String[] getSupportedPackageTypes() {
-        return new String[]{PACKAGE_TYPE_PYEXT};
+        return new String[]{PyExtConstants.PACKAGE_TYPE_PYEXT};
     }
 
     @Override
     public String[] getOutgoingPackageTypes() {
-        return new String[]{PACKAGE_TYPE_PYEXT};
+        return new String[]{PyExtConstants.PACKAGE_TYPE_PYEXT};
     }
 
     public List<Script> getScripts() {
@@ -117,19 +131,29 @@ public class PyExtPlugin extends Plugin {
     }
 
     private void loadScriptsList() {
-        final NetworkPackage np = new NetworkPackage(PACKAGE_TYPE_PYEXT);
+        final NetworkPackage np = new NetworkPackage(PyExtConstants.PACKAGE_TYPE_PYEXT);
         np.set("pyext_type", "ScriptListRequest");
         device.sendPackage(np);
     }
 
     public void executeScript(Script script) {
-        final NetworkPackage np = new NetworkPackage(PACKAGE_TYPE_PYEXT);
+        final NetworkPackage np = new NetworkPackage(PyExtConstants.PACKAGE_TYPE_PYEXT);
         np.set("pyext_type", "ScriptExecuteRequest");
         np.set("script_guid", script.getGuid());
+        np.set("script_entrypoint", CapabilityType.MAIN.getValue());
         device.sendPackage(np);
         Log.i("PyExt", "Sent command to execute script with guid: " + script.getGuid());
     }
 
-    private List<Script> scripts;
-
+    public void onEvent(Intent intent) {
+        final CapabilityType type = PyExtConstants.INTENT_TO_CAPABILITY.get(intent.getAction());
+        final PyExtEventHandler handler = PyExtConstants.CAPABILITY_TO_HANDLER.get(type);
+        for (final Script script: scripts) {
+            if (script.getCapabilities().contains(type)) {
+                handler.onEvent(device, script, new HashMap<String, String>());
+            } else {
+                Log.i("PyExt", "Capability " + type + " not found for script: " + script.getName());
+            }
+        }
+    }
 }

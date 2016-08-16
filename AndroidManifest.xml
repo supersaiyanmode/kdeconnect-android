@@ -109,6 +109,9 @@
             <intent-filter>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
             <!--
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />

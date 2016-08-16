@@ -27,11 +27,16 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import org.kde.kdeconnect.Plugins.PyExtPlugin.PyExtConstants;
+import org.kde.kdeconnect.Plugins.PyExtPlugin.PyExtPlugin;
+
+import java.util.Collection;
+
 public class KdeConnectBroadcastReceiver extends BroadcastReceiver
 {
 
 
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, final Intent intent) {
 
         //Log.e("KdeConnect", "Broadcast event: "+intent.getAction());
 
@@ -79,6 +84,27 @@ public class KdeConnectBroadcastReceiver extends BroadcastReceiver
                     }
                 });
                 break;
+            case Intent.ACTION_USER_PRESENT:
+                Log.i("PyExt", "Got intent " + intent.getAction());
+                BackgroundService.RunCommand(context, new BackgroundService.InstanceCallback() {
+                    @Override
+                    public void onServiceStart(BackgroundService service) {
+                        Collection<Device> devices = service.getDevices().values();
+                        for (Device device : devices) {
+                            Log.i("PyExt", "Device: " + device + " paired: " + device.isPaired());
+                            if (device.isPaired()) {
+                                PyExtPlugin plugin = (PyExtPlugin) device.getLoadedPlugins()
+                                        .get(PyExtPlugin.class.getSimpleName());
+                                if (plugin == null) {
+                                    Log.i("PyExt", "PyExtPlugin instance is null.");
+                                    return;
+                                }
+                                Log.i("PyExt", "Sending intent to a device: "+intent.getAction());
+                                plugin.onEvent(intent);
+                            }
+                        }
+                    }
+                });
             default:
                 Log.i("BroadcastReceiver", "Ignoring broadcast event: "+intent.getAction());
                 break;
