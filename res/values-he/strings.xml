@@ -18,7 +18,7 @@
   <string name="pref_plugin_sharereceiver_desc">שתף וקבל קבצים וכתובת אינטרנט בין התקנים</string>
   <string name="plugin_not_available">אפשרות זו אינה זמינה בגרסת האנדרואיד שלך</string>
   <string name="device_list_empty">אין התקנים</string>
-  <string name="ok">בסדר</string>
+  <string name="ok">אישור</string>
   <string name="cancel">בטל</string>
   <string name="open_settings">פתח הגדרות</string>
   <string name="no_permissions">אתה צריך לתת הרשאות לגישה להתראות</string>
@@ -79,7 +79,6 @@
   <string name="received_file_text">לחץ כדי לפתוח את %1s</string>
   <string name="sent_file_title">הקובץ נשלח ל־%1s</string>
   <string name="sent_file_text">%1s</string>
-  <string name="sent_file_failed_title">נכשל בשליחת הקובץ ל־%1s</string>
   <string name="sent_file_failed_text">%1s</string>
   <string name="tap_to_answer">לחץ כדי לענות</string>
   <string name="reconnect">התחבר מחדש</string>

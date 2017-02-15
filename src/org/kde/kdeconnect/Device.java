@@ -37,6 +37,7 @@ import android.util.Log;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BasePairingHandler;
 import org.kde.kdeconnect.Backends.LanBackend.LanLinkProvider;
+import org.kde.kdeconnect.Helpers.NotificationHelper;
 import org.kde.kdeconnect.Helpers.SecurityHelpers.SslHelper;
 import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect.Plugins.PluginFactory;
@@ -145,6 +146,9 @@ public class Device implements BaseLink.PackageReceiver {
             e.printStackTrace();
             Log.e("KDE/Device","Exception deserializing stored public key for device");
         }
+
+        //Assume every plugin is supported until addLink is called and we can get the actual list
+        m_supportedPlugins = new Vector<>(PluginFactory.getAvailablePlugins());
 
         //Do not load plugins yet, the device is not present
         //reloadPluginsFromSettings();
@@ -284,7 +288,6 @@ public class Device implements BaseLink.PackageReceiver {
         SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
         preferences.edit().remove(deviceId).apply();
 
-        // FIXME : We delete all device info here, but the xml file still persists
         SharedPreferences devicePreferences = context.getSharedPreferences(deviceId, Context.MODE_PRIVATE);
         devicePreferences.edit().clear().apply();
 
@@ -365,7 +368,23 @@ public class Device implements BaseLink.PackageReceiver {
         Intent intent = new Intent(getContext(), MaterialActivity.class);
         intent.putExtra("deviceId", getDeviceId());
         intent.putExtra("notificationId", notificationId);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent acceptIntent = new Intent(getContext(), MaterialActivity.class);
+        Intent rejectIntent = new Intent(getContext(), MaterialActivity.class);
+
+        acceptIntent.putExtra("deviceId", getDeviceId());
+        acceptIntent.putExtra("notificationId", notificationId);
+        acceptIntent.setAction("action "+System.currentTimeMillis());
+        acceptIntent.putExtra(MaterialActivity.PAIR_REQUEST_STATUS, MaterialActivity.PAIRING_ACCEPTED);
+
+        rejectIntent.putExtra("deviceId", getDeviceId());
+        rejectIntent.putExtra("notificationId", notificationId);
+        rejectIntent.setAction("action "+System.currentTimeMillis());
+        rejectIntent.putExtra(MaterialActivity.PAIR_REQUEST_STATUS, MaterialActivity.PAIRING_REJECTED);
+
+        PendingIntent acceptedPendingIntent = PendingIntent.getActivity(getContext(), 2, acceptIntent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent rejectedPendingIntent = PendingIntent.getActivity(getContext(), 4, rejectIntent, PendingIntent.FLAG_ONE_SHOT);
 
         Resources res = getContext().getResources();
 
@@ -375,19 +394,16 @@ public class Device implements BaseLink.PackageReceiver {
                 .setContentIntent(pendingIntent)
                 .setTicker(res.getString(R.string.pair_requested))
                 .setSmallIcon(R.drawable.ic_notification)
+                .addAction(R.drawable.ic_accept_pairing, res.getString(R.string.pairing_accept), acceptedPendingIntent)
+                .addAction(R.drawable.ic_reject_pairing, res.getString(R.string.pairing_reject), rejectedPendingIntent)
                 .setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .build();
 
         final NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationHelper.notifyCompat(notificationManager, notificationId, noti);
 
-        try {
-            BackgroundService.addGuiInUseCounter(context);
-            notificationManager.notify(notificationId, noti);
-        } catch(Exception e) {
-            //4.1 will throw an exception about not having the VIBRATE permission, ignore it.
-            //https://android.googlesource.com/platform/frameworks/base/+/android-4.2.1_r1.2%5E%5E!/
-        }
+        BackgroundService.addGuiInUseCounter(context);
     }
 
     public void hidePairingNotification() {
@@ -580,42 +596,43 @@ public class Device implements BaseLink.PackageReceiver {
     }
 
     public static abstract class SendPackageStatusCallback {
-        protected abstract void onSuccess();
-        protected abstract void onFailure(Throwable e);
-        protected void onProgressChanged(int percent) { }
+        public abstract void onSuccess();
+        public abstract void onFailure(Throwable e);
+        public void onProgressChanged(int percent) { }
+    }
 
-        private boolean success = false;
-        public void sendSuccess() {
-            success = true;
-            onSuccess();
-        }
-        public void sendFailure(Throwable e) {
+    private SendPackageStatusCallback defaultCallback = new SendPackageStatusCallback() {
+        @Override
+        public void onSuccess() { }
+        @Override
+        public void onFailure(Throwable e) {
             if (e != null) {
                 e.printStackTrace();
-                Log.e("KDE/sendPackage", "Exception: " + e.getMessage());
             } else {
                 Log.e("KDE/sendPackage", "Unknown (null) exception");
             }
-            onFailure(e);
         }
-        public void sendProgress(int percent) { onProgressChanged(percent); }
-    }
-
+    };
 
     public void sendPackage(NetworkPackage np) {
-        sendPackage(np,new SendPackageStatusCallback() {
-            @Override
-            protected void onSuccess() { }
-            @Override
-            protected void onFailure(Throwable e) { }
-        });
+        sendPackage(np, defaultCallback);
+    }
+
+    public boolean sendPackageBlocking(NetworkPackage np) {
+        return sendPackageBlocking(np, defaultCallback);
     }
 
     //Async
     public void sendPackage(final NetworkPackage np, final SendPackageStatusCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendPackageBlocking(np, callback);
+            }
+        }).start();
+    }
 
-        hackToMakeRetrocompatiblePacketTypes(np);
-
+    public boolean sendPackageBlocking(final NetworkPackage np, final SendPackageStatusCallback callback) {
 
         /*
         if (!m_outgoingCapabilities.contains(np.getType()) && !NetworkPackage.protocolPackageTypes.contains(np.getType())) {
@@ -624,37 +641,29 @@ public class Device implements BaseLink.PackageReceiver {
         }
         */
 
-        //Log.e("sendPackage", "Sending package...");
-        //Log.e("sendPackage", np.serialize());
+        hackToMakeRetrocompatiblePacketTypes(np);
 
-        final Throwable backtrace = new Throwable();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        boolean useEncryption = (protocolVersion < LanLinkProvider.MIN_VERSION_WITH_SSL_SUPPORT && (!np.getType().equals(NetworkPackage.PACKAGE_TYPE_PAIR) && isPaired()));
 
-                boolean useEncryption = (protocolVersion < LanLinkProvider.MIN_VERSION_WITH_SSL_SUPPORT && (!np.getType().equals(NetworkPackage.PACKAGE_TYPE_PAIR) && isPaired()));
-
-                //Make a copy to avoid concurrent modification exception if the original list changes
-                for (final BaseLink link : links) {
-                    if (link == null) continue; //Since we made a copy, maybe somebody destroyed the link in the meanwhile
-                    if (useEncryption) {
-                        link.sendPackageEncrypted(np, callback, publicKey);
-                    } else {
-                        link.sendPackage(np, callback);
-                    }
-                    if (callback.success) break; //If the link didn't call sendSuccess(), try the next one
-                }
-
-                if (!callback.success) {
-                    Log.e("KDE/sendPackage", "No device link (of "+links.size()+" available) could send the package. Package "+np.getType()+" to " + name + " lost!");
-                    backtrace.printStackTrace();
-                }
-
+        boolean success = false;
+        //Make a copy to avoid concurrent modification exception if the original list changes
+        for (final BaseLink link : links) {
+            if (link == null) continue; //Since we made a copy, maybe somebody destroyed the link in the meanwhile
+            if (useEncryption) {
+                success = link.sendPackageEncrypted(np, callback, publicKey);
+            } else {
+                success = link.sendPackage(np, callback);
             }
-        }).start();
+            if (success) break; //If the link didn't call sendSuccess(), try the next one
+        }
+
+        if (!success) {
+            Log.e("KDE/sendPackage", "No device link (of "+links.size()+" available) could send the package. Package "+np.getType()+" to " + name + " lost!");
+        }
+
+        return success;
 
     }
-
     //
     // Plugin-related functions
     //

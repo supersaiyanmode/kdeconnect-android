@@ -198,6 +198,20 @@ public class LanLinkProvider extends BaseLinkProvider implements LanLink.LinkDis
                 SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
                 boolean isDeviceTrusted = preferences.getBoolean(deviceId, false);
 
+                if (isDeviceTrusted && !SslHelper.isCertificateStored(context, deviceId)) {
+                    //Device paired with and old version, we can't use it as we lack the certificate
+                    BackgroundService.RunCommand(context, new BackgroundService.InstanceCallback() {
+                        @Override
+                        public void onServiceStart(BackgroundService service) {
+                            Device device = service.getDevice(deviceId);
+                            if (device == null) return;
+                            device.unpair();
+                            //Retry as unpaired
+                            identityPackageReceived(identityPackage, socket, connectionStarted);
+                        }
+                    });
+                }
+
                 Log.i("KDE/LanLinkProvider","Starting SSL handshake with " + identityPackage.getString("deviceName") + " trusted:"+isDeviceTrusted);
 
                 final SSLSocket sslsocket = SslHelper.convertToSslSocket(context, socket, deviceId, isDeviceTrusted, clientMode);
@@ -233,14 +247,11 @@ public class LanLinkProvider extends BaseLinkProvider implements LanLink.LinkDis
                         } catch (Exception e) {
                             Log.e("KDE/LanLinkProvider","Handshake failed with " + identityPackage.getString("deviceName"));
                             e.printStackTrace();
-                            BackgroundService.RunCommand(context, new BackgroundService.InstanceCallback() {
-                                @Override
-                                public void onServiceStart(BackgroundService service) {
-                                    Device device = service.getDevice(deviceId);
-                                    if (device == null) return;
-                                    device.unpair();
-                                }
-                            });
+
+                            //String[] ciphers = sslsocket.getSupportedCipherSuites();
+                            //for (String cipher : ciphers) {
+                            //    Log.i("SupportedCiphers","cipher: " + cipher);
+                            //}
                         }
                     }
                 }).start();
@@ -249,15 +260,6 @@ public class LanLinkProvider extends BaseLinkProvider implements LanLink.LinkDis
             }
         } catch (Exception e) {
             e.printStackTrace();
-            BackgroundService.RunCommand(context, new BackgroundService.InstanceCallback() {
-                @Override
-                public void onServiceStart(BackgroundService service) {
-                    Device device = service.getDevice(deviceId);
-                    Log.e("LanLinkProvider", "Unpairing "+(device != null));
-                    if (device == null) return;
-                    device.unpair();
-                }
-            });
         }
 
     }

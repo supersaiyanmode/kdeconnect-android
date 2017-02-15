@@ -43,7 +43,7 @@
     <item>Lento</item>
     <item>Predeterminado</item>
     <item>Rápido</item>
-    <item>O mais rápido</item>
+    <item>O máis rápido</item>
   </string-array>
   <string name="category_connected_devices">Dispositivos conectados</string>
   <string name="category_not_paired_devices">Dispositivos dispoñíbeis</string>
@@ -75,7 +75,6 @@
   <string name="received_file_text">Toque para abrir «%1s».</string>
   <string name="sent_file_title">Enviouse o ficheiro a %1s</string>
   <string name="sent_file_text">%1s</string>
-  <string name="sent_file_failed_title">Non foi posíbel enviar o ficheiro %1s</string>
   <string name="sent_file_failed_text">%1s</string>
   <string name="tap_to_answer">Toque para contestar</string>
   <string name="reconnect">Conectar de novo</string>
@@ -140,7 +139,7 @@
   <string name="pairing_description">Outros dispositivos que estean a executar KDE Connect na mesma rede deberían aparecer aquí.</string>
   <string name="device_paired">Emparellouse co dispositivo</string>
   <string name="device_rename_title">Cambiar o nome do dispositivo</string>
-  <string name="device_rename_confirm">Mudar o nome</string>
+  <string name="device_rename_confirm">Cambiar o nome</string>
   <string name="refresh">Actualizar</string>
   <string name="unreachable_description">Este dispositivo emparellado está fóra do alcance. Asegúrese de que está conectado á mesma rede.</string>
   <string name="no_file_browser">Non hai navegadores de ficheiros instalados.</string>

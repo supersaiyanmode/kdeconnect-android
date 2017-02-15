@@ -60,14 +60,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DeviceFragment extends Fragment {
 
-    private static final String ARG_DEVICE_ID = "deviceId";
-    private View rootView;
-    static private String mDeviceId; //Static because if we get here by using the back button in the action bar, the extra deviceId will not be set.
-    private Device device;
+    static final String ARG_DEVICE_ID = "deviceId";
 
-    private TextView errorHeader;
+    View rootView;
+    static String mDeviceId; //Static because if we get here by using the back button in the action bar, the extra deviceId will not be set.
+    Device device;
 
-    private MaterialActivity mActivity;
+    TextView errorHeader;
+
+    MaterialActivity mActivity;
 
     public DeviceFragment() { }
 
@@ -81,6 +82,13 @@ public class DeviceFragment extends Fragment {
         Bundle args = new Bundle();
         args.putString(ARG_DEVICE_ID, deviceId);
         args.putBoolean("fromDeviceList", fromDeviceList);
+        this.setArguments(args);
+    }
+
+    public DeviceFragment(String deviceId, MaterialActivity activity){
+        this.mActivity = activity;
+        Bundle args = new Bundle();
+        args.putString(ARG_DEVICE_ID, deviceId);
         this.setArguments(args);
     }
 
@@ -183,8 +191,7 @@ public class DeviceFragment extends Fragment {
         return rootView;
     }
 
-
-    private final Device.PluginsChangedListener pluginsChangedListener = new Device.PluginsChangedListener() {
+    final Device.PluginsChangedListener pluginsChangedListener = new Device.PluginsChangedListener() {
         @Override
         public void onPluginsChanged(final Device device) {
             refreshUI();
@@ -242,7 +249,7 @@ public class DeviceFragment extends Fragment {
             }
         });
 
-        if (device.isPaired()) {
+        if (device.isPaired() && device.isReachable()) {
 
             menu.add(R.string.encryption_info_title).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
@@ -266,6 +273,9 @@ public class DeviceFragment extends Fragment {
                     return true;
                 }
             });
+        }
+
+        if (device.isPaired()) {
 
             menu.add(R.string.device_menu_unpair).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                 @Override
@@ -415,7 +425,7 @@ public class DeviceFragment extends Fragment {
 
     }
 
-    private final Device.PairingCallback pairingCallback = new Device.PairingCallback() {
+    final Device.PairingCallback pairingCallback = new Device.PairingCallback() {
 
         @Override
         public void incomingRequest() {
@@ -432,6 +442,7 @@ public class DeviceFragment extends Fragment {
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (rootView == null) return;
                     ((TextView) rootView.findViewById(R.id.pair_message)).setText(error);
                     rootView.findViewById(R.id.pair_progress).setVisibility(View.GONE);
                     rootView.findViewById(R.id.pair_button).setVisibility(View.VISIBLE);
@@ -446,6 +457,7 @@ public class DeviceFragment extends Fragment {
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (rootView == null) return;
                     ((TextView) rootView.findViewById(R.id.pair_message)).setText(R.string.device_not_paired);
                     rootView.findViewById(R.id.pair_progress).setVisibility(View.GONE);
                     rootView.findViewById(R.id.pair_button).setVisibility(View.VISIBLE);
@@ -457,4 +469,45 @@ public class DeviceFragment extends Fragment {
 
     };
 
+    public static void acceptPairing(final String devId, final MaterialActivity activity){
+        final DeviceFragment frag = new DeviceFragment(devId, activity);
+        BackgroundService.RunCommand(activity, new BackgroundService.InstanceCallback() {
+            public void onServiceStart(BackgroundService service) {
+                Device dev = service.getDevice(devId);
+                activity.getSupportActionBar().setTitle(dev.getName());
+
+                dev.addPairingCallback(frag.pairingCallback);
+                dev.addPluginsChangedListener(frag.pluginsChangedListener);
+
+                frag.device = dev;
+                frag.device.acceptPairing();
+
+                frag.refreshUI();
+
+            }
+        });
+    }
+
+    public static void rejectPairing(final String devId, final MaterialActivity activity){
+        final DeviceFragment frag = new DeviceFragment(devId, activity);
+        BackgroundService.RunCommand(activity, new BackgroundService.InstanceCallback() {
+            public void onServiceStart(BackgroundService service) {
+                Device dev = service.getDevice(devId);
+                activity.getSupportActionBar().setTitle(dev.getName());
+
+                dev.addPairingCallback(frag.pairingCallback);
+                dev.addPluginsChangedListener(frag.pluginsChangedListener);
+
+                frag.device = dev;
+
+                //Remove listener so buttons don't show for a while before changing the view
+                frag.device.removePluginsChangedListener(frag.pluginsChangedListener);
+                frag.device.removePairingCallback(frag.pairingCallback);
+                frag.device.rejectPairing();
+                activity.onDeviceSelected(null);
+
+                frag.refreshUI();
+            }
+        });
+    }
 }

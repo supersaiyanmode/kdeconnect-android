@@ -39,7 +39,7 @@ import java.util.TimerTask;
 
 public class LanPairingHandler extends BasePairingHandler {
 
-    private Timer mPairingTimer;
+    Timer mPairingTimer;
 
     public LanPairingHandler(Device device, final PairingHandlerCallback callback) {
         super(device, callback);
@@ -142,7 +142,7 @@ public class LanPairingHandler extends BasePairingHandler {
 
         Device.SendPackageStatusCallback statusCallback = new Device.SendPackageStatusCallback() {
             @Override
-            protected void onSuccess() {
+            public void onSuccess() {
                 hidePairingNotification(); //Will stop the pairingTimer if it was running
                 mPairingTimer = new Timer();
                 mPairingTimer.schedule(new TimerTask() {
@@ -157,14 +157,19 @@ public class LanPairingHandler extends BasePairingHandler {
             }
 
             @Override
-            protected void onFailure(Throwable e) {
+            public void onFailure(Throwable e) {
+                if (e != null) {
+                    e.printStackTrace();
+                } else {
+                    Log.e("LanPairing/onFailure", "Unknown (null) exception");
+                }
                 mCallback.pairingFailed(mDevice.getContext().getString(R.string.error_could_not_send_package));
             }
         };
         mDevice.sendPackage(createPairPackage(), statusCallback);
     }
 
-    public void hidePairingNotification() {
+    void hidePairingNotification() {
         mDevice.hidePairingNotification();
         if (mPairingTimer != null) {
             mPairingTimer .cancel();
@@ -176,12 +181,17 @@ public class LanPairingHandler extends BasePairingHandler {
         hidePairingNotification();
         Device.SendPackageStatusCallback statusCallback = new Device.SendPackageStatusCallback() {
             @Override
-            protected void onSuccess() {
+            public void onSuccess() {
                 pairingDone();
             }
 
             @Override
-            protected void onFailure(Throwable e) {
+            public void onFailure(Throwable e) {
+                if (e != null) {
+                    e.printStackTrace();
+                } else {
+                    Log.e("LanPairing/onFailure", "Unknown (null) exception");
+                }
                 mCallback.pairingFailed(mDevice.getContext().getString(R.string.error_not_reachable));
             }
         };
@@ -197,7 +207,7 @@ public class LanPairingHandler extends BasePairingHandler {
         mDevice.sendPackage(np);
     }
 
-    public void pairingDone() {
+    void pairingDone() {
         // Store device information needed to create a Device object in a future
         //Log.e("KDE/PairingDone", "Pairing Done");
         SharedPreferences.Editor editor = mDevice.getContext().getSharedPreferences(mDevice.getDeviceId(), Context.MODE_PRIVATE).edit();
