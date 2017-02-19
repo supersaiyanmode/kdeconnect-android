@@ -72,6 +72,7 @@ public class KdeConnectBroadcastReceiver extends BroadcastReceiver
                 BackgroundService.RunCommand(context, new BackgroundService.InstanceCallback() {
                     @Override
                     public void onServiceStart(BackgroundService service) {
+                        service.onDeviceListChanged();
                         service.onNetworkChange();
                     }
                 });
